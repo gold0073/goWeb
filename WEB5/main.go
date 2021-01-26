@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/gold0073/goWeb/web5/myapp"
+	"goWeb/WEB5/myapp"
 )
 
 func main() {
