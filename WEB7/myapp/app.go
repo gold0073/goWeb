@@ -27,7 +27,20 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Get User in for by /users/{id}")
+	if len(userMap) == 0 {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "No Users")
+		return
+	}
+
+	users := []*User{}
+	for _, u := range userMap {
+		users = append(users, u)
+	}
+	data, _ := json.Marshal(users)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(data))
 }
 
 func getUserInforHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +89,60 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+
+	_, ok := userMap[id]
+	if !ok {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "No User ID:", id)
+		return
+	}
+
+	delete(userMap, id)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Deleted User ID:", id)
+}
+
+func updateUserHandler(w http.ResponseWriter, r *http.Request) {
+	updateUser := new(User)
+	err := json.NewDecoder(r.Body).Decode(updateUser)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+	user, ok := userMap[updateUser.ID]
+	if !ok {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "No User ID:", updateUser.ID)
+		return
+	}
+
+	if updateUser.FirstName != "" {
+		user.FirstName = updateUser.FirstName
+	}
+	if updateUser.LastName != "" {
+		user.LastName = updateUser.LastName
+	}
+	if updateUser.Email != "" {
+		user.Email = updateUser.Email
+	}
+
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	data, _ := json.Marshal(user)
+	fmt.Fprintf(w, string(data))
+
+}
+
 //NewHandler is
 func NewHandler() http.Handler {
 	userMap = make(map[int]*User)
@@ -86,6 +153,8 @@ func NewHandler() http.Handler {
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/users", usersHandler).Methods("GET")
 	mux.HandleFunc("/users", createUserHandler).Methods("POST")
-	mux.HandleFunc("/users/{id:[0-9]+}", getUserInforHandler)
+	mux.HandleFunc("/users", updateUserHandler).Methods("PUT")
+	mux.HandleFunc("/users/{id:[0-9]+}", getUserInforHandler).Methods("GET")
+	mux.HandleFunc("/users/{id:[0-9]+}", deleteUserHandler).Methods("DELETE")
 	return mux
 }
