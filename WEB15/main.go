@@ -17,15 +17,15 @@ import (
 )
 
 var googleOauthConfig = oauth2.Config{
-	RedirectURL:  "http://localhost:3000/auth/google/callback",
+	RedirectURL: "http://localhost:3000/auth/google/callback",
 	//ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 	//ClientSecret: os.Getenv("GOOGLE_SECRET_KEY"),
 
 	ClientID:     "962820945007-u2t996r6h1meqapnp04munimkd85m2ep.apps.googleusercontent.com",
 	ClientSecret: "LW-N2jLpUH3mi2kezeSn3vGb",
 
-	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
-	Endpoint:     google.Endpoint,
+	Scopes:   []string{"https://www.googleapis.com/auth/userinfo.email"},
+	Endpoint: google.Endpoint,
 }
 
 func genetateStateOauthCookie(w http.ResponseWriter) string {
@@ -82,10 +82,16 @@ func getGoogleUserInfo(code string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
+func gologin(w http.ResponseWriter, r *http.Request) {
+	//fmt.Fprint(w, string(data))
+	http.Redirect(w, r, "http://localhost:3000/signin.html", http.StatusTemporaryRedirect)
+}
+
 func main() {
 	mux := pat.New()
 	mux.HandleFunc("/auth/google/login", googleLoginHandler)
 	mux.HandleFunc("/auth/google/callback", googleAuthCallback)
+	mux.HandleFunc("/", gologin)
 	n := negroni.Classic()
 	n.UseHandler(mux)
 	http.ListenAndServe(":3000", n)
