@@ -9,9 +9,12 @@ WORKDIR /build
 
 COPY go.mod go.sum main.go ./
 
+COPY . .
+
 RUN go mod download
 
 RUN go build -o main .
+
 
 #WORKDIR /dist
 

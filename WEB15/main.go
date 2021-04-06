@@ -80,6 +80,8 @@ func getGoogleUserInfo(code string) ([]byte, error) {
 	}
 
 	return ioutil.ReadAll(resp.Body)
+
+	http.Redirect(w, r, "http://localhost:3001", http.StatusTemporaryRedirect)
 }
 
 func gologin(w http.ResponseWriter, r *http.Request) {
